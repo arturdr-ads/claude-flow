@@ -93,25 +93,22 @@ def main():
         input_data = json.loads(sys.stdin.read())
         
         # Ensure log directory exists
-        import os
-        log_dir = os.path.join(os.getcwd(), 'logs')
-        os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, 'notification.json')
-        
+        log_dir = Path('logs')
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = log_dir / 'notification.json'
+
         # Read existing log data or initialize empty list
-        if os.path.exists(log_file):
-            with open(log_file, 'r') as f:
-                try:
+        try:
+            if log_file.exists():
+                with open(log_file, 'r') as f:
                     log_data = json.load(f)
-                except (json.JSONDecodeError, ValueError):
-                    log_data = []
-        else:
+            else:
+                log_data = []
+        except (json.JSONDecodeError, ValueError):
             log_data = []
-        
-        # Append new data
+
+        # Append new data and write back
         log_data.append(input_data)
-        
-        # Write back to file with formatting
         with open(log_file, 'w') as f:
             json.dump(log_data, f, indent=2)
         

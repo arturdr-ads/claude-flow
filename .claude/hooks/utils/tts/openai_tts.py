@@ -11,7 +11,6 @@
 import os
 import sys
 import asyncio
-from pathlib import Path
 from dotenv import load_dotenv
 
 
@@ -33,10 +32,8 @@ async def main():
     - Live audio playback via LocalAudioPlayer
     """
 
-    # Load environment variables
     load_dotenv()
 
-    # Get API key from environment
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         print("❌ Error: OPENAI_API_KEY not found in environment variables")
@@ -48,23 +45,18 @@ async def main():
         from openai import AsyncOpenAI
         from openai.helpers import LocalAudioPlayer
 
-        # Initialize OpenAI client
         openai = AsyncOpenAI(api_key=api_key)
 
         print("🎙️  OpenAI TTS")
         print("=" * 20)
 
         # Get text from command line argument or use default
-        if len(sys.argv) > 1:
-            text = " ".join(sys.argv[1:])  # Join all arguments as text
-        else:
-            text = "Today is a wonderful day to build something people love!"
+        text = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Today is a wonderful day to build something people love!"
 
         print(f"🎯 Text: {text}")
         print("🔊 Generating and streaming...")
 
         try:
-            # Generate and stream audio using OpenAI TTS
             async with openai.audio.speech.with_streaming_response.create(
                 model="gpt-4o-mini-tts",
                 voice="nova",
@@ -79,7 +71,7 @@ async def main():
         except Exception as e:
             print(f"❌ Error: {e}")
 
-    except ImportError as e:
+    except ImportError:
         print("❌ Error: Required package not installed")
         print("This script uses UV to auto-install dependencies.")
         print("Make sure UV is installed: https://docs.astral.sh/uv/")

@@ -8,7 +8,7 @@
 
 import argparse
 import json
-import os
+import shutil
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -22,25 +22,21 @@ except ImportError:
 
 def log_pre_compact(input_data):
     """Log pre-compact event to logs directory."""
-    # Ensure logs directory exists
-    log_dir = Path("logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / 'pre_compact.json'
-    
+    log_file = Path("logs/pre_compact.json")
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
     # Read existing log data or initialize empty list
-    if log_file.exists():
-        with open(log_file, 'r') as f:
-            try:
+    try:
+        if log_file.exists():
+            with open(log_file, 'r') as f:
                 log_data = json.load(f)
-            except (json.JSONDecodeError, ValueError):
-                log_data = []
-    else:
+        else:
+            log_data = []
+    except (json.JSONDecodeError, ValueError):
         log_data = []
-    
-    # Append the entire input data
+
+    # Append and write back
     log_data.append(input_data)
-    
-    # Write back to file with formatting
     with open(log_file, 'w') as f:
         json.dump(log_data, f, indent=2)
 
@@ -48,23 +44,19 @@ def log_pre_compact(input_data):
 def backup_transcript(transcript_path, trigger):
     """Create a backup of the transcript before compaction."""
     try:
-        if not os.path.exists(transcript_path):
-            return
-        
-        # Create backup directory
-        backup_dir = Path("logs") / "transcript_backups"
+        transcript_path = Path(transcript_path)
+        if not transcript_path.exists():
+            return None
+
+        # Create backup directory and generate backup filename
+        backup_dir = Path("logs/transcript_backups")
         backup_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Generate backup filename with timestamp and trigger type
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        session_name = Path(transcript_path).stem
-        backup_name = f"{session_name}_pre_compact_{trigger}_{timestamp}.jsonl"
-        backup_path = backup_dir / backup_name
-        
+        backup_path = backup_dir / f"{transcript_path.stem}_pre_compact_{trigger}_{timestamp}.jsonl"
+
         # Copy transcript to backup
-        import shutil
         shutil.copy2(transcript_path, backup_path)
-        
         return str(backup_path)
     except Exception:
         return None

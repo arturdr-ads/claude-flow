@@ -23,25 +23,21 @@ except ImportError:
 
 def log_session_start(input_data):
     """Log session start event to logs directory."""
-    # Ensure logs directory exists
-    log_dir = Path("logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / 'session_start.json'
-    
+    log_file = Path("logs/session_start.json")
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
     # Read existing log data or initialize empty list
-    if log_file.exists():
-        with open(log_file, 'r') as f:
-            try:
+    try:
+        if log_file.exists():
+            with open(log_file, 'r') as f:
                 log_data = json.load(f)
-            except (json.JSONDecodeError, ValueError):
-                log_data = []
-    else:
+        else:
+            log_data = []
+    except (json.JSONDecodeError, ValueError):
         log_data = []
-    
-    # Append the entire input data
+
+    # Append and write back
     log_data.append(input_data)
-    
-    # Write back to file with formatting
     with open(log_file, 'w') as f:
         json.dump(log_data, f, indent=2)
 
@@ -49,31 +45,26 @@ def log_session_start(input_data):
 def get_git_status():
     """Get current git status information."""
     try:
-        # Get current branch
-        branch_result = subprocess.run(
+        # Get both branch and status in one call
+        result = subprocess.run(
             ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
             capture_output=True,
             text=True,
             timeout=5
         )
-        current_branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
-        
-        # Get uncommitted changes count
-        status_result = subprocess.run(
+        current_branch = result.stdout.strip() if result.returncode == 0 else None
+
+        result = subprocess.run(
             ['git', 'status', '--porcelain'],
             capture_output=True,
             text=True,
             timeout=5
         )
-        if status_result.returncode == 0:
-            changes = status_result.stdout.strip().split('\n') if status_result.stdout.strip() else []
-            uncommitted_count = len(changes)
-        else:
-            uncommitted_count = 0
-        
+        uncommitted_count = len(result.stdout.strip().split('\n')) if result.returncode == 0 and result.stdout.strip() else 0
+
         return current_branch, uncommitted_count
     except Exception:
-        return None, None
+        return None, 0
 
 
 def get_recent_issues():
@@ -100,44 +91,37 @@ def get_recent_issues():
 
 def load_development_context(source):
     """Load relevant development context based on session source."""
-    context_parts = []
-    
-    # Add timestamp
-    context_parts.append(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    context_parts.append(f"Session source: {source}")
-    
+    context_parts = [
+        f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Session source: {source}"
+    ]
+
     # Add git information
     branch, changes = get_git_status()
     if branch:
         context_parts.append(f"Git branch: {branch}")
         if changes > 0:
             context_parts.append(f"Uncommitted changes: {changes} files")
-    
-    # Load project-specific context files if they exist
-    context_files = [
-        ".claude/CONTEXT.md",
-        ".claude/TODO.md",
-        "TODO.md",
-        ".github/ISSUE_TEMPLATE.md"
-    ]
-    
+
+    # Load project-specific context files
+    context_files = [".claude/CONTEXT.md", ".claude/TODO.md", "TODO.md", ".github/ISSUE_TEMPLATE.md"]
     for file_path in context_files:
-        if Path(file_path).exists():
+        path = Path(file_path)
+        if path.exists():
             try:
-                with open(file_path, 'r') as f:
-                    content = f.read().strip()
-                    if content:
-                        context_parts.append(f"\n--- Content from {file_path} ---")
-                        context_parts.append(content[:1000])  # Limit to first 1000 chars
+                content = path.read_text().strip()
+                if content:
+                    context_parts.append(f"\n--- Content from {file_path} ---")
+                    context_parts.append(content[:1000])
             except Exception:
                 pass
-    
+
     # Add recent issues if available
     issues = get_recent_issues()
     if issues:
         context_parts.append("\n--- Recent GitHub Issues ---")
         context_parts.append(issues)
-    
+
     return "\n".join(context_parts)
 
 

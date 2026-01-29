@@ -7,68 +7,88 @@
 # ///
 
 import json
-import os
 import sys
 from pathlib import Path
 from datetime import datetime
 
 try:
     from dotenv import load_dotenv
-
     load_dotenv()
 except ImportError:
     pass  # dotenv is optional
 
 
+# Cache session paths - avoid recomputing on every call
+_CLAUDE_HOME = Path.home() / ".claude" / "projects"
+_CURRENT_DIR = Path.cwd()
+_CACHED_SESSION_PATHS = [
+    _CLAUDE_HOME / f"-home-arturdr-Claude" / "{{session_id}}.jsonl",
+    _CLAUDE_HOME / f"-{_CURRENT_DIR.as_posix().replace('/', '-')}" / "{{session_id}}.jsonl",
+    Path(".claude/data/sessions") / "{{session_id}}.json",
+    Path(".claude/sessions") / "{{session_id}}.json",
+]
+
+
 def log_status_line(input_data, status_line_output, error_message=None):
     """Log status line event to logs directory."""
-    # Ensure logs directory exists
-    log_dir = Path("logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / "status_line.json"
+    log_file = Path("logs/status_line.json")
+    log_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Read existing log data or initialize empty list
     if log_file.exists():
-        with open(log_file, "r") as f:
-            try:
+        try:
+            with open(log_file, "r") as f:
                 log_data = json.load(f)
-            except (json.JSONDecodeError, ValueError):
-                log_data = []
+        except (json.JSONDecodeError, ValueError):
+            log_data = []
     else:
         log_data = []
 
-    # Create log entry with input data and generated output
+    # Create log entry and append
     log_entry = {
         "timestamp": datetime.now().isoformat(),
         "version": "v3",
         "input_data": input_data,
         "status_line_output": status_line_output,
     }
-
     if error_message:
         log_entry["error"] = error_message
-
-    # Append the log entry
     log_data.append(log_entry)
 
-    # Write back to file with formatting
+    # Write back to file
     with open(log_file, "w") as f:
         json.dump(log_data, f, indent=2)
 
 
 def get_session_data(session_id):
     """Get session data including agent name and prompts."""
-    session_file = Path(f".claude/data/sessions/{session_id}.json")
+    # Build session file paths from cached templates
+    for path_template in _CACHED_SESSION_PATHS:
+        session_file = Path(str(path_template).replace("{session_id}", session_id))
+        if session_file.exists():
+            try:
+                if session_file.suffix == ".jsonl":
+                    # Read last valid JSON line efficiently
+                    with open(session_file, "r") as f:
+                        for line in reversed(f.readlines()):
+                            line = line.strip()
+                            if line:
+                                try:
+                                    session_data = json.loads(line)
+                                    return {
+                                        "agent_name": session_data.get("agentName", "Claude"),
+                                        "prompts": session_data.get("prompts", [])
+                                    }, None
+                                except json.JSONDecodeError:
+                                    continue
+                    return None, "No valid session data found in JSONL"
+                else:
+                    with open(session_file, "r") as f:
+                        return json.load(f), None
+            except Exception as e:
+                return None, f"Error reading session file: {str(e)}"
 
-    if not session_file.exists():
-        return None, f"Session file {session_file} does not exist"
-
-    try:
-        with open(session_file, "r") as f:
-            session_data = json.load(f)
-            return session_data, None
-    except Exception as e:
-        return None, f"Error reading session file: {str(e)}"
+    return None, "Session file not found in any location"
 
 
 def truncate_prompt(prompt, max_length=75):
@@ -83,79 +103,47 @@ def truncate_prompt(prompt, max_length=75):
 
 def get_prompt_icon(prompt):
     """Get icon based on prompt type."""
+    prompt_lower = prompt.lower()
     if prompt.startswith("/"):
         return "⚡"
-    elif "?" in prompt:
+    if "?" in prompt:
         return "❓"
-    elif any(
-        word in prompt.lower()
-        for word in ["create", "write", "add", "implement", "build"]
-    ):
+    if any(word in prompt_lower for word in ("create", "write", "add", "implement", "build")):
         return "💡"
-    elif any(word in prompt.lower() for word in ["fix", "debug", "error", "issue"]):
+    if any(word in prompt_lower for word in ("fix", "debug", "error", "issue")):
         return "🐛"
-    elif any(word in prompt.lower() for word in ["refactor", "improve", "optimize"]):
+    if any(word in prompt_lower for word in ("refactor", "improve", "optimize")):
         return "♻️"
-    else:
-        return "💬"
+    return "💬"
 
 
 def generate_status_line(input_data):
     """Generate the status line with agent name and last 3 prompts."""
-    # Extract session ID from input data
     session_id = input_data.get("session_id", "unknown")
+    model_name = input_data.get("model", {}).get("display_name", "Claude")
 
-    # Get model name
-    model_info = input_data.get("model", {})
-    model_name = model_info.get("display_name", "Claude")
-
-    # Get session data
     session_data, error = get_session_data(session_id)
-
     if error:
-        # Log the error but show a default message
         log_status_line(input_data, f"[{model_name}] 💭 No session data", error)
         return f"\033[36m[{model_name}]\033[0m \033[90m💭 No session data\033[0m"
 
-    # Extract agent name and prompts
     agent_name = session_data.get("agent_name", "Agent")
     prompts = session_data.get("prompts", [])
 
     # Build status line components
-    parts = []
+    parts = [f"\033[91m[{agent_name}]\033[0m", f"\033[34m[{model_name}]\033[0m"]
 
-    # Agent name - Bright Green
-    parts.append(f"\033[91m[{agent_name}]\033[0m")
-
-    # Model name - Blue
-    parts.append(f"\033[34m[{model_name}]\033[0m")
-
-    # Last 3 prompts (most recent first)
     if prompts:
-        # Current prompt - white/bright
         current_prompt = prompts[-1]
-        icon = get_prompt_icon(current_prompt)
-        truncated = truncate_prompt(current_prompt, 75)
-        parts.append(f"{icon} \033[97m{truncated}\033[0m")
-
-        # Previous prompt - gray
+        parts.append(f"{get_prompt_icon(current_prompt)} \033[97m{truncate_prompt(current_prompt, 75)}\033[0m")
         if len(prompts) > 1:
-            prev_prompt = prompts[-2]
-            truncated = truncate_prompt(prev_prompt, 50)
-            parts.append(f"\033[90m{truncated}\033[0m")
-
-        # Two prompts ago - darker gray
+            parts.append(f"\033[90m{truncate_prompt(prompts[-2], 50)}\033[0m")
         if len(prompts) > 2:
-            older_prompt = prompts[-3]
-            truncated = truncate_prompt(older_prompt, 40)
-            parts.append(f"\033[90m{truncated}\033[0m")
+            parts.append(f"\033[90m{truncate_prompt(prompts[-3], 40)}\033[0m")
     else:
         parts.append("\033[90m💭 No prompts yet\033[0m")
 
-    # Join with separator
-    status_line = " | ".join(parts)
-
-    return status_line
+    return " | ".join(parts)
 
 
 def main():

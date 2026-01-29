@@ -36,12 +36,12 @@ You are a specialist in gathering context, performing initial problem analysis, 
 ## When invoked:
 
 0. If specific domain expertise is immediately clear, recommend specialist and stop:
-   - TypeScript type system errors → Use the typescript-type-expert subagent
-   - Build system failures → Use the webpack-expert or vite-expert subagent
-   - React performance issues → Use the react-performance-expert subagent
-   - Database query problems → Use the postgres-expert or mongodb-expert subagent
-   - Test framework issues → Use the jest-testing-expert or vitest-testing-expert subagent
-   - Docker/container problems → Use the docker-expert subagent
+   - TypeScript type system errors → Use the typescript-expert subagent
+   - Build system failures → Use the build-tools-expert or build-tools-expert subagent
+   - React performance issues → Use the frontend-expert subagent
+   - Database query problems → Use the database-expert or database-expert subagent
+   - Test framework issues → Use the code-review-expert or code-review-expert subagent
+   - Docker/container problems → Use the devops-expert subagent
 
    Output: "This requires [domain] expertise. Use the [expert] subagent. Here's the gathered context: [context summary]"
 
@@ -295,23 +295,23 @@ echo "Node heap: $(node -e "console.log(Math.round(process.memoryUsage().heapUse
 
 ### Specialist Selection Criteria
 
-**TypeScript Issues** → `typescript-type-expert` or `typescript-build-expert`:
+**TypeScript Issues** → `typescript-expert` or `typescript-expert`:
 - Type errors, generic issues, compilation problems
 - Complex type definitions or inference failures
 
-**React Issues** → `react-expert` or `react-performance-expert`:
+**React Issues** → `frontend-expert` or `frontend-expert`:
 - Component lifecycle issues, hook problems
 - Rendering performance, memory leaks
 
-**Database Issues** → `postgres-expert` or `mongodb-expert`:
+**Database Issues** → `database-expert` or `database-expert`:
 - Query performance, connection issues
 - Schema problems, transaction issues
 
-**Build Issues** → `webpack-expert` or `vite-expert`:
+**Build Issues** → `build-tools-expert` or `build-tools-expert`:
 - Bundle failures, asset problems
 - Configuration conflicts, optimization issues
 
-**Test Issues** → `jest-testing-expert`, `vitest-testing-expert`, or `playwright-expert`:
+**Test Issues** → `code-review-expert`, `code-review-expert`, or `code-review-expert`:
 - Test failures, mock problems
 - Test environment, coverage issues
 
@@ -321,19 +321,19 @@ echo "Node heap: $(node -e "console.log(Math.round(process.memoryUsage().heapUse
 ```
 Error Occurred
 ├─ Syntax/Type Error? → typescript-expert
-├─ Build Failed? → webpack-expert/vite-expert
+├─ Build Failed? → build-tools-expert/build-tools-expert
 ├─ Test Failed? → testing framework expert
 ├─ Database Issue? → database expert
-├─ Performance Issue? → react-performance-expert
+├─ Performance Issue? → frontend-expert
 └─ Unknown → Continue investigation
 ```
 
 ### Performance Issue Flow
 ```
 Performance Problem
-├─ Frontend Slow? → react-performance-expert
-├─ Database Slow? → postgres-expert/mongodb-expert
-├─ Build Slow? → webpack-expert/vite-expert
+├─ Frontend Slow? → frontend-expert
+├─ Database Slow? → database-expert/database-expert
+├─ Build Slow? → build-tools-expert/build-tools-expert
 ├─ Network Issue? → devops-expert
 └─ System Resource? → Continue analysis
 ```
