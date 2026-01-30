@@ -129,15 +129,16 @@ npm has built-in protections:
 - **Cons**: Requires API changes, testing, potential breaking changes
 - **Decision**: Considered for future, not urgent
 
-### Option C: Use npm overrides
+### Option C: Use npm overrides (ATTEMPTED - DOESN'T WORK)
 ```json
 "overrides": {
   "tar": "^7.5.7"
 }
 ```
 - **Pros**: Forces latest tar version
-- **Cons**: Already attempted - tar is deeply embedded in node-gyp
-- **Decision**: Partially applied, may not fully resolve
+- **Cons**: npm doesn't apply overrides to deeply nested transitive deps properly
+- **Decision**: Override added to package.json but ineffective
+- **Note**: The tar package is embedded too deep (6 levels) for npm to override
 
 ### Option D: Accept with Documentation (CHOSEN)
 - **Pros**: Maintains functionality, documented risk assessment

@@ -6,7 +6,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks pre-edit --file \"$TOOL_INPUT_file_path\" 2>/dev/null || true",
+            "command": "[ -n \"$TOOL_INPUT_file_path\" ] && npx @claude-flow/cli@latest hooks pre-edit --file \"$TOOL_INPUT_file_path\" 2>/dev/null || true",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TOOL_INPUT_command\" ] && npx @claude-flow/cli@latest hooks pre-command --command \"$TOOL_INPUT_command\" 2>/dev/null || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -17,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks pre-task --description \"$TOOL_INPUT_prompt\" 2>/dev/null || true",
+            "command": "[ -n \"$TOOL_INPUT_prompt\" ] && npx @claude-flow/cli@latest hooks pre-task --task-id \"task-$(date +%s)\" --description \"$TOOL_INPUT_prompt\" 2>/dev/null || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -30,7 +41,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks post-edit --file \"$TOOL_INPUT_file_path\" --success \"$TOOL_SUCCESS\" 2>/dev/null || true",
+            "command": "[ -n \"$TOOL_INPUT_file_path\" ] && npx @claude-flow/cli@latest hooks post-edit --file \"$TOOL_INPUT_file_path\" --success \"${TOOL_SUCCESS:-true}\" 2>/dev/null || true",
+            "timeout": 5000,
+            "continueOnError": true
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TOOL_INPUT_command\" ] && npx @claude-flow/cli@latest hooks post-command --command \"$TOOL_INPUT_command\" --success \"${TOOL_SUCCESS:-true}\" 2>/dev/null || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -41,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks post-task --task-id \"$TOOL_RESULT_agent_id\" --success \"$TOOL_SUCCESS\" 2>/dev/null || true",
+            "command": "[ -n \"$TOOL_RESULT_agent_id\" ] && npx @claude-flow/cli@latest hooks post-task --task-id \"$TOOL_RESULT_agent_id\" --success \"${TOOL_SUCCESS:-true}\" 2>/dev/null || true",
             "timeout": 5000,
             "continueOnError": true
           }
@@ -53,8 +75,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PROMPT_SAFE=$(printf '%s' \"$PROMPT\" | head -c 1000 2>/dev/null); [ -n \"$PROMPT_SAFE\" ] && npx @claude-flow/cli@latest hooks route --task \"$PROMPT_SAFE\" 2>/dev/null || true",
-            "timeout": 10000,
+            "command": "[ -n \"$PROMPT\" ] && npx @claude-flow/cli@latest hooks route --task \"$PROMPT\" || true",
+            "timeout": 5000,
             "continueOnError": true
           }
         ]
@@ -65,13 +87,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest daemon start --quiet",
+            "command": "npx @claude-flow/cli@latest daemon start --quiet 2>/dev/null || true",
             "timeout": 5000,
             "continueOnError": true
           },
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks session-restore --session-id \"$SESSION_ID\"",
+            "command": "[ -n \"$SESSION_ID\" ] && npx @claude-flow/cli@latest hooks session-restore --session-id \"$SESSION_ID\" 2>/dev/null || true",
             "timeout": 10000,
             "continueOnError": true
           }
@@ -83,7 +105,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"process.stdout.write(JSON.stringify({ok:true}))\"",
+            "command": "echo '{\"ok\": true}'",
             "timeout": 1000
           }
         ]
@@ -94,7 +116,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest memory store --namespace notifications --key \"notify\" --value \"$NOTIFICATION_MESSAGE\"",
+            "command": "[ -n \"$NOTIFICATION_MESSAGE\" ] && npx @claude-flow/cli@latest memory store --namespace notifications --key \"notify-$(date +%s)\" --value \"$NOTIFICATION_MESSAGE\" 2>/dev/null || true",
             "timeout": 3000,
             "continueOnError": true
           }
@@ -104,7 +126,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "npx @claude-flow/cli@latest hooks statusline || node .claude/helpers/statusline.cjs || echo Claude Flow V3",
+    "command": "npx @claude-flow/cli@latest hooks statusline 2>/dev/null || node .claude/helpers/statusline.cjs 2>/dev/null || echo \"▊ Claude Flow V3\"",
     "refreshMs": 5000,
     "enabled": true
   },
@@ -115,10 +137,6 @@
       "mcp__claude-flow__:*"
     ],
     "deny": []
-  },
-  "attribution": {
-    "commit": "Co-Authored-By: claude-flow <ruv@ruv.net>",
-    "pr": "🤖 Generated with [claude-flow](https://github.com/ruvnet/claude-flow)"
   },
   "claudeFlow": {
     "version": "3.0.0",
