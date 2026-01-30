@@ -18,6 +18,11 @@
 .claude/cache/
 .claude/tmp/
 
+# Runtime do swarm (estado dinâmico)
+.claude/context.json
+.claude/auto_config.json
+.claude/settings.local.json
+
 # ===========================================================================
 # ClaudeKit - Arquivos do framework
 # ===========================================================================
