@@ -1,5 +1,153 @@
 {
+  "model": "claude-opus-4-5-20251101",
+  "customInstructions": "Follow the project's CLAUDE.md guidelines. Use concurrent execution for all operations. Prioritize v3 implementation with security-first development, 15-agent swarm coordination, phased performance optimization, and cross-platform helper automation. Leverage Opus 4.5's advanced reasoning for complex architectural decisions and system optimization. CRITICAL: When spawning swarms, ALWAYS use MCP tools AND Task tool in the SAME message. V3 CLI hooks enabled with SONA, MoE, and HNSW intelligence features.",
   "permissions": {
-    "allow": ["Bash(*)", "Write", "Edit", "Read", "Grep", "Glob", "Task"]
-  }
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Bash",
+      "Glob",
+      "Grep",
+      "Task",
+      "WebFetch",
+      "WebSearch",
+      "TodoWrite",
+      "LSP",
+      "NotebookEdit"
+    ],
+    "deniedTools": [],
+    "allow": [
+      "Bash(npx:*)",
+      "Bash(npx claude-flow:*)",
+      "Bash(agentic-flow:*)",
+      "Bash(npm run:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run test:*)",
+      "Bash(npm test:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git config:*)",
+      "Bash(git tag:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(jq:*)",
+      "Bash(node:*)",
+      "Bash(which:*)",
+      "Bash(pwd)",
+      "Bash(ls:*)",
+      "mcp__agentic-flow",
+      "mcp__claude-flow",
+      "mcp__claude-flow__*",
+      "mcp__ruv-swarm",
+      "mcp__ruv-swarm__*",
+      "mcp__flow-nexus__*"
+    ],
+    "deny": [
+      "Bash(rm -rf /)"
+    ]
+  },
+  "env": {
+    "AGENTIC_FLOW_INTELLIGENCE": "true",
+    "AGENTIC_FLOW_LEARNING_RATE": "0.05",
+    "AGENTIC_FLOW_EPSILON": "0.1",
+    "AGENTIC_FLOW_MEMORY_BACKEND": "agentdb",
+    "AGENTIC_FLOW_V3_MODE": "true",
+    "AGENTIC_FLOW_SWARM_SIZE": "15",
+    "AGENTIC_FLOW_TOPOLOGY": "hierarchical",
+    "AGENTIC_FLOW_SECURITY_FIRST": "true",
+    "AGENTIC_FLOW_PERFORMANCE_TIER": "standard",
+    "AGENTIC_FLOW_LEARNING_TIER": "standard",
+    "AGENTIC_FLOW_PRETRAIN_ENABLED": "true",
+    "AGENTIC_FLOW_SONA_ENABLED": "true",
+    "AGENTIC_FLOW_HNSW_ENABLED": "true",
+    "AGENTIC_FLOW_MOE_ATTENTION": "true",
+    "AGENTIC_FLOW_MULTI_ALGORITHM_RL": "true",
+    "AGENTIC_FLOW_COMPRESSION_ENABLED": "true",
+    "AGENTIC_FLOW_SWARM_COMM_ENABLED": "true",
+    "AGENTIC_FLOW_AGENT_NAME": "claude-code",
+    "AGENTIC_FLOW_PATTERN_BROADCAST_THRESHOLD": "0.7",
+    "AGENTIC_FLOW_CONSENSUS_TIMEOUT": "30000",
+    "AGENTIC_FLOW_AUTO_BROADCAST_PATTERNS": "true",
+    "CLAUDE_FLOW_AUTO_COMMIT": "true",
+    "CLAUDE_FLOW_AUTO_PUSH": "true",
+    "CLAUDE_FLOW_HOOKS_ENABLED": "true",
+    "CLAUDE_FLOW_TELEMETRY_ENABLED": "true",
+    "CLAUDE_FLOW_REMOTE_EXECUTION": "true",
+    "CLAUDE_FLOW_CHECKPOINTS_ENABLED": "true",
+    "CLAUDE_FLOW_V3_CLI_ENABLED": "false",
+    "CLAUDE_FLOW_V3_INTELLIGENCE": "true"
+  },
+  "checkpointManager": {
+    "enabled": true,
+    "autoCommit": true,
+    "commitMessage": "checkpoint: Development progress",
+    "frequency": "after-significant-change",
+    "includeMetrics": true
+  },
+  "githubIntegration": {
+    "enabled": true,
+    "features": {
+      "autoCommit": true,
+      "prTracking": true,
+      "issueManagement": true,
+      "progressReporting": true
+    }
+  },
+  "hooks": {},
+  "agents": {
+    "source": ".claude/agents",
+    "customAgents": []
+  },
+  "skills": {
+    "source": ".claude/commands",
+    "enabled": true
+  },
+  "helpers": {
+    "directory": ".claude/helpers",
+    "enabled": true
+  },
+  "v3Configuration": {
+    "domains": {
+      "total": 5,
+      "names": ["task-management", "session-management", "health-monitoring", "lifecycle-management", "event-coordination"],
+      "sourceDir": "src/domains"
+    },
+    "swarm": {
+      "totalAgents": 15,
+      "topology": "hierarchical-mesh",
+      "coordination": "queen-led",
+      "communication": {
+        "enabled": true,
+        "messaging": true,
+        "patternBroadcast": true,
+        "consensus": true,
+        "taskHandoff": true,
+        "autoPatternShare": true,
+        "patternThreshold": 0.7,
+        "consensusTimeout": 30000
+      }
+    },
+    "performance": {
+      "flashAttentionTarget": "2.49x-7.47x",
+      "memoryReductionTarget": "50-75%",
+      "searchImprovementTarget": "150x-12,500x",
+      "codebaseReductionTarget": "10,000+ lines"
+    },
+    "security": {
+      "criticalCves": 3,
+      "securityFirst": true,
+      "auditRequired": true
+    }
+  },
+  "attribution": {
+    "commit": "Co-Authored-By: claude-flow <ruv@ruv.net>",
+    "pr": "🤖 Generated with [claude-flow](https://github.com/ruvnet/claude-flow)"
+  },
+  "enabledMcpjsonServers": ["claude-flow", "ruv-swarm"]
 }
