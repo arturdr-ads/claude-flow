@@ -75,7 +75,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'if [ -n \"$PROMPT\" ]; then npx @claude-flow/cli@latest hooks route --task \"$PROMPT\" 2>&1 || true; fi'",
+            "command": "INPUT=$(cat); TASK=$(echo $INPUT | jq -r '.prompt // empty' 2>/dev/null | head -c 100 | tr '\\n' ' '); [ -z \"$TASK\" ] && TASK='Task'; npx @claude-flow/cli@latest hooks route --task \"$TASK\" 2>&1 || true",
             "timeout": 5000,
             "continueOnError": true
           }

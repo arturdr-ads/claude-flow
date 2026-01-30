@@ -100,5 +100,8 @@
   "publishConfig": {
     "access": "public",
     "tag": "alpha"
+  },
+  "overrides": {
+    "tar": "^7.5.7"
   }
 }
