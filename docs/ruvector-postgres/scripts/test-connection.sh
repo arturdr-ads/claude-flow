@@ -15,7 +15,8 @@ HOST="${PGHOST:-localhost}"
 PORT="${PGPORT:-5432}"
 DATABASE="${PGDATABASE:-claude_flow}"
 USER="${PGUSER:-claude}"
-PASSWORD="${PGPASSWORD:-claude-flow-test}"
+# Require PGPASSWORD to be set (source ~/.claude-postgres first)
+PASSWORD="${PGPASSWORD:?Error: PGPASSWORD not set. Source ~/.claude-postgres or set PGPASSWORD environment variable}"
 
 echo "============================================"
 echo "RuVector PostgreSQL Connection Test"
