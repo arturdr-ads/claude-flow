@@ -17,6 +17,8 @@ services:
     container_name: ruvector-postgres
     environment:
       POSTGRES_USER: claude
+      # For production, use Docker secrets or external secret management
+      # Default password for local development only - change in production
       POSTGRES_PASSWORD: claude-flow-test
       POSTGRES_DB: claude_flow
     ports:

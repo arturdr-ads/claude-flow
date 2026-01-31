@@ -7,7 +7,8 @@ HOST="${PGHOST:-localhost}"
 PORT="${PGPORT:-5432}"
 DATABASE="${PGDATABASE:-claude_flow}"
 USER="${PGUSER:-claude}"
-PASSWORD="${PGPASSWORD:-claude-flow-test}"
+# Require PGPASSWORD to be set (source ~/.claude-postgres first)
+PASSWORD="${PGPASSWORD:?Error: PGPASSWORD not set. Source ~/.claude-postgres or set PGPASSWORD environment variable}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
